@@ -1,0 +1,26 @@
+seed: 42
+device: cuda
+
+model:
+  name: gm_hrm
+  hidden_dim: 256
+  input_dim: 64
+  output_dim: 10
+
+memory:
+  enabled: true
+  slots: 16
+  slot_dim: 256
+
+halting:
+  enabled: true
+  max_segments: 10
+  ponder_cost: 0.01
+
+implicit_grad:
+  k_steps: 3
+
+training:
+  batch_size: 32
+  lr: 3e-4
+  epochs: 50
