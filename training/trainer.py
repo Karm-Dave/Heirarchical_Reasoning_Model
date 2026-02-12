@@ -1,3 +1,7 @@
+import torch
+import torch.nn as nn
+from training.losses import act_loss
+
 class Trainer(nn.Module):
     def __init__(self, model, optimizer, cfg):
         self.model = model

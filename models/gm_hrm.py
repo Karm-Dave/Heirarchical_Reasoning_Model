@@ -1,3 +1,10 @@
+from hrm_modules import LowLevelModule,HighLevelModule
+from fusion import GatedFusion
+from memory import ExternalMemory
+from halting import ACTHalting
+import torch
+import torch.nn as nn
+
 class GMHRM(nn.Module):
     def __init__(self, cfg):
         super().__init__()

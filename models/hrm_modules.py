@@ -1,3 +1,6 @@
+import torch
+import torch.nn as nn
+
 class LowLevelModule(nn.Module):
     def __init__(self, dim):
         super().__init__()

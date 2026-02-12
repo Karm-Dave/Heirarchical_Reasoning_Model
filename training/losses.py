@@ -1,3 +1,6 @@
+import torch
+import torch.nn as nn
+
 def act_loss(outputs, targets, halting_probs, ponder_cost):
     loss = 0.0
     expected_steps = 0.0
