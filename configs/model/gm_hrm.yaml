@@ -1,0 +1,20 @@
+model:
+  name: gm_hrm
+  hidden_dim: 256
+  input_dim: 64
+  output_dim: 10
+
+memory:
+  enabled: true
+  slots: 16
+  slot_dim: 256
+  reset_each_forward: true
+
+halting:
+  enabled: true
+  max_segments: 10
+  ponder_cost: 0.01
+  threshold: 1.0
+
+implicit_grad:
+  k_steps: 3

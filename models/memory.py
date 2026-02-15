@@ -1,29 +1,40 @@
+# models/memory.py
 import torch
 import torch.nn as nn
 
+
 class ExternalMemory(nn.Module):
-    def __init__(self, slots, dim):
+    def __init__(self, slots: int, slot_dim: int, query_dim: int):
         super().__init__()
         self.slots = slots
-        self.dim = dim
-        self.memory = nn.Parameter(torch.zeros(slots, dim))
+        self.slot_dim = slot_dim
+        self.query_dim = query_dim
 
-        self.key = nn.Linear(dim, dim)
-        self.erase = nn.Linear(dim, dim)
-        self.add = nn.Linear(dim, dim)
+        self.register_buffer("memory", torch.zeros(slots, slot_dim))
 
-    def read(self, query):
-        attn = torch.softmax(
-            torch.matmul(self.key(query), self.momery.T), dim = -1
-        )
-        return torch.matmul(attn, self.memory)
+        self.key = nn.Linear(query_dim, slot_dim)
+        self.erase = nn.Linear(query_dim, slot_dim)
+        self.add = nn.Linear(query_dim, slot_dim)
 
-    def write(self, state):
-        attn = torch.softmax(
-            torch.matmul(self.key(state), self.memory.T), dim = -1
-        )
-        earse = torch.sigmoid(self.erase(state))
-        add = torch.tanh(self.add(state))
+    def reset(self):
+        self.memory.zero_()
 
-        self.memory.data = self.memory.data * (1 - attn.unsqueeze(-1) * earse.unsqueeze(1))
-        self.memory.data = self.memory.data + attn.unsqueeze(-1) * add.unsqueeze(1)
+    def read(self, query: torch.Tensor) -> torch.Tensor:
+        q = self.key(query)  # (B, slot_dim)
+        attn = torch.softmax(q @ self.memory.T, dim=-1)  # (B, slots)
+        return attn @ self.memory  # (B, slot_dim)
+
+    def write(self, state: torch.Tensor):
+        k = self.key(state)  # (B, slot_dim)
+        attn = torch.softmax(k @ self.memory.T, dim=-1)  # (B, slots)
+
+        erase = torch.sigmoid(self.erase(state))  # (B, slot_dim)
+        add = torch.tanh(self.add(state))  # (B, slot_dim)
+
+        attn_mean = attn.mean(dim=0, keepdim=True).T  # (slots, 1)
+        erase_mean = erase.mean(dim=0, keepdim=True)  # (1, slot_dim)
+        add_mean = add.mean(dim=0, keepdim=True)  # (1, slot_dim)
+
+        new_memory = self.memory * (1.0 - attn_mean * erase_mean) + (attn_mean * add_mean)
+        with torch.no_grad():
+            self.memory.copy_(new_memory)

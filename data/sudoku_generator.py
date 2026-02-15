@@ -9,7 +9,7 @@ from pydantic import BaseModel
 from tqdm import tqdm
 from huggingface_hub import hf_hub_download
 
-from common import PuzzleDatasetMetadata
+from data.common import PuzzleDatasetMetadata
 
 
 cli = ArgParser()
@@ -71,15 +71,16 @@ def convert_subset(set_name: str, config: DataProcessConfig):
                 
                 inputs.append(np.frombuffer(q.replace('.', '0').encode(), dtype=np.uint8).reshape(9, 9) - ord('0'))
                 labels.append(np.frombuffer(a.encode(), dtype=np.uint8).reshape(9, 9) - ord('0'))
+                if config.subsample_size is not None and len(inputs) >= config.subsample_size:
+                    break
 
-    # If subsample_size is specified for the training set,
-    # randomly sample the desired number of examples.
-    if set_name == "train" and config.subsample_size is not None:
-        total_samples = len(inputs)
-        if config.subsample_size < total_samples:
-            indices = np.random.choice(total_samples, size=config.subsample_size, replace=False)
-            inputs = [inputs[i] for i in indices]
-            labels = [labels[i] for i in indices]
+    # # If subsample_size is specified, randomly sample the desired number of examples.
+    # if config.subsample_size is not None:
+    #     total_samples = len(inputs)
+    #     if config.subsample_size < total_samples:
+    #         indices = np.random.choice(total_samples, size=config.subsample_size, replace=False)
+    #         inputs = [inputs[i] for i in indices]
+    #         labels = [labels[i] for i in indices]
 
     # Generate dataset
     num_augments = config.num_aug if set_name == "train" else 0
