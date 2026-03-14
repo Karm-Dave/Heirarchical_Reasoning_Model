@@ -1,0 +1,114 @@
+extends: main.yaml
+
+experiment:
+  name: gm_hrm_smoke
+
+data:
+  auto_generate: true
+  max_train_samples: 64
+  max_test_samples: 32
+
+training:
+  epochs: 1
+  batch_size: 16
+  max_batches_per_epoch: 2
+
+evaluation:
+  max_batches: 2
+
+benchmarks:
+  definitions:
+    sudoku:
+      levels:
+        - name: bt22_smoke
+          dataset:
+            root: data/sudoku-mini
+            input_dim: 81
+            output_dim: 10
+            normalize_divisor: 10.0
+            target_index: 0
+          generator:
+            module: data.sudoku_generator
+            args:
+              - --output-dir
+              - data/sudoku-mini
+              - --subsample-size
+              - "64"
+              - --num-aug
+              - "0"
+    maze:
+      levels:
+        - name: g30_smoke
+          dataset:
+            root: data/smoke/maze
+            input_dim: 900
+            output_dim: 5
+            normalize_divisor: 5.0
+            target_index: 0
+          generator:
+            module: data.mock_generator
+            args:
+              - --output-dir
+              - data/smoke/maze
+              - --train-size
+              - "64"
+              - --test-size
+              - "32"
+              - --seq-len
+              - "900"
+              - --vocab-size
+              - "5"
+              - --output-dim
+              - "5"
+    math:
+      levels:
+        - name: chain_smoke
+          dataset:
+            root: data/smoke/math
+            input_dim: 64
+            output_dim: 10
+            normalize_divisor: 32.0
+            target_index: 0
+          generator:
+            module: data.math_generator
+            args:
+              - --output-dir
+              - data/smoke/math
+              - --train-size
+              - "64"
+              - --test-size
+              - "32"
+              - --seq-len
+              - "64"
+              - --vocab-size
+              - "32"
+              - --output-dim
+              - "10"
+              - --min-steps
+              - "5"
+              - --max-steps
+              - "7"
+    arc:
+      levels:
+        - name: arc_smoke
+          dataset:
+            root: data/smoke/arc
+            input_dim: 900
+            output_dim: 12
+            normalize_divisor: 12.0
+            target_index: 0
+          generator:
+            module: data.mock_generator
+            args:
+              - --output-dir
+              - data/smoke/arc
+              - --train-size
+              - "64"
+              - --test-size
+              - "32"
+              - --seq-len
+              - "900"
+              - --vocab-size
+              - "12"
+              - --output-dim
+              - "12"

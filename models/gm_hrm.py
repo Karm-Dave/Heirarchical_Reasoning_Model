@@ -21,6 +21,7 @@ class GMHRM(nn.Module):
         self.L = LowLevelModule(d)
         self.H = HighLevelModule(d)
         self.fusion = GatedFusion(d)
+        self.use_gating = bool(getattr(cfg.model, "use_gating", True))
 
         self.max_segments = cfg.halting.max_segments
         self.memory_reset_each_forward = cfg.memory.reset_each_forward
@@ -62,7 +63,11 @@ class GMHRM(nn.Module):
                 z_l = z_l + self.memory.read(z_l)
 
             z_l = self.L(x_proj, z_l)
-            mixed = self.fusion(z_l, z_h, x_proj)
+            if self.use_gating:
+                mixed = self.fusion(z_l, z_h, x_proj)
+            else:
+                # Direct coupling baseline (no adaptive gate).
+                mixed = 0.5 * (z_l + z_h)
             z_h = self.H(mixed, z_h)
 
             if self.memory is not None:

@@ -21,8 +21,9 @@ class ExternalMemory(nn.Module):
 
     def read(self, query: torch.Tensor) -> torch.Tensor:
         q = self.key(query)  # (B, slot_dim)
-        attn = torch.softmax(q @ self.memory.T, dim=-1)  # (B, slots)
-        return attn @ self.memory  # (B, slot_dim)
+        mem = self.memory.detach().clone()
+        attn = torch.softmax(q @ mem.T, dim=-1)  # (B, slots)
+        return attn @ mem  # (B, slot_dim)
 
     def write(self, state: torch.Tensor):
         k = self.key(state)  # (B, slot_dim)

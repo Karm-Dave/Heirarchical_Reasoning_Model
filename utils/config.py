@@ -1,20 +1,20 @@
-# utils/config.py
 from __future__ import annotations
 
+from copy import deepcopy
 from pathlib import Path
 from types import SimpleNamespace
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 import yaml
 
 
-def _deep_merge(base: Dict[str, Any], override: Dict[str, Any]) -> Dict[str, Any]:
-    out = dict(base)
+def deep_merge_dict(base: Dict[str, Any], override: Dict[str, Any]) -> Dict[str, Any]:
+    out = deepcopy(base)
     for k, v in override.items():
         if k in out and isinstance(out[k], dict) and isinstance(v, dict):
-            out[k] = _deep_merge(out[k], v)
+            out[k] = deep_merge_dict(out[k], v)
         else:
-            out[k] = v
+            out[k] = deepcopy(v)
     return out
 
 
@@ -28,7 +28,7 @@ def _to_namespace(obj: Any) -> Any:
 
 def _read_yaml(path: Path) -> Dict[str, Any]:
     if not path.exists():
-        return {}
+        raise FileNotFoundError(f"Config file not found: {path}")
     with path.open("r", encoding="utf-8") as f:
         data = yaml.safe_load(f) or {}
     if not isinstance(data, dict):
@@ -36,28 +36,41 @@ def _read_yaml(path: Path) -> Dict[str, Any]:
     return data
 
 
-def load_config(config_dir: str = "configs", model_name: Optional[str] = None):
-    cfg_dir = Path(config_dir)
+def _resolve_extended_config(path: Path) -> Dict[str, Any]:
+    cfg = _read_yaml(path)
+    parent = cfg.pop("extends", None)
+    if parent is None:
+        return cfg
 
-    base_cfg = _read_yaml(cfg_dir / "base.yaml")
-    chosen_model = model_name or base_cfg.get("model", {}).get("name", "gm_hrm")
+    parent_path = (path.parent / parent).resolve()
+    parent_cfg = _resolve_extended_config(parent_path)
+    return deep_merge_dict(parent_cfg, cfg)
 
-    model_cfg = _read_yaml(cfg_dir / "model" / f"{chosen_model}.yaml")
-    train_cfg = _read_yaml(cfg_dir / "train.yaml")
-    exp_cfg = _read_yaml(cfg_dir / "experiment.yaml")
 
-    merged = _deep_merge(base_cfg, model_cfg)
-    merged = _deep_merge(merged, train_cfg)
-    merged = _deep_merge(merged, exp_cfg)
-
+def _validate(cfg: Dict[str, Any]):
     required = [
+        ("seed",),
+        ("device",),
         ("model", "name"),
-        ("halting", "max_segments"),
-        ("memory", "slot_dim"),
+        ("model", "hidden_dim"),
+        ("model", "input_dim"),
+        ("model", "output_dim"),
+        ("training", "batch_size"),
         ("training", "lr"),
+        ("training", "epochs"),
+        ("data", "root"),
     ]
-    for parent, child in required:
-        if parent not in merged or child not in merged[parent]:
-            raise KeyError(f"Missing required config key: {parent}.{child}")
+    for key_path in required:
+        node: Any = cfg
+        for key in key_path:
+            if not isinstance(node, dict) or key not in node:
+                joined = ".".join(key_path)
+                raise KeyError(f"Missing required config key: {joined}")
+            node = node[key]
 
-    return _to_namespace(merged)
+
+def load_config(config_path: str = "configs/main.yaml", as_namespace: bool = True):
+    path = Path(config_path).resolve()
+    cfg = _resolve_extended_config(path)
+    _validate(cfg)
+    return _to_namespace(cfg) if as_namespace else cfg

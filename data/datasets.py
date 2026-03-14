@@ -5,8 +5,16 @@ import torch
 from torch.utils.data import Dataset
 
 
-class SudokuNpyDataset(Dataset):
-    def __init__(self, split_dir, input_dim: int, output_dim: int, max_samples: int | None = None):
+class NpyClassificationDataset(Dataset):
+    def __init__(
+        self,
+        split_dir,
+        input_dim: int,
+        output_dim: int,
+        max_samples: int | None = None,
+        normalize_divisor: float = 10.0,
+        target_index: int = 0,
+    ):
         split_path = Path(split_dir)
         inputs_path = split_path / "all__inputs.npy"
         labels_path = split_path / "all__labels.npy"
@@ -25,13 +33,18 @@ class SudokuNpyDataset(Dataset):
 
         self.input_dim = int(input_dim)
         self.output_dim = int(output_dim)
+        self.normalize_divisor = float(normalize_divisor)
+        self.target_index = int(target_index)
 
     def __len__(self):
         return len(self.inputs)
 
     def _project_input(self, x: np.ndarray) -> np.ndarray:
-        # Normalize token ids to [0, 1] and adapt to model input dim.
-        x = x.astype(np.float32) / 10.0
+        # Normalize token ids and adapt to model input dim.
+        if self.normalize_divisor > 0:
+            x = x.astype(np.float32) / self.normalize_divisor
+        else:
+            x = x.astype(np.float32)
         if x.shape[0] >= self.input_dim:
             return x[: self.input_dim]
         out = np.zeros(self.input_dim, dtype=np.float32)
@@ -43,6 +56,9 @@ class SudokuNpyDataset(Dataset):
         y_raw = self.labels[idx]
 
         x = torch.from_numpy(self._project_input(x_raw))
-        # Minimal class target adapter for current classifier-style model.
-        y = torch.tensor(int(y_raw[0]) % self.output_dim, dtype=torch.long)
+        y = torch.tensor(int(y_raw[self.target_index]) % self.output_dim, dtype=torch.long)
         return x, y
+
+
+class SudokuNpyDataset(NpyClassificationDataset):
+    pass

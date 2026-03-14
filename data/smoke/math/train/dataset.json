@@ -1,0 +1,1 @@
+{"seq_len": 64, "vocab_size": 33, "pad_id": 0, "ignore_label_id": 0, "blank_identifier_id": 0, "num_puzzle_identifiers": 1, "total_groups": 64, "mean_puzzle_examples": 1.0, "sets": ["all"]}

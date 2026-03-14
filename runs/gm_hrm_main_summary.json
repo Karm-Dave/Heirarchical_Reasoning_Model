@@ -1,0 +1,68 @@
+[
+  {
+    "benchmark": "sudoku",
+    "variant": "hrm_baseline",
+    "run_dir": "runs\\gm_hrm_main\\sudoku\\hrm_baseline",
+    "device": "cpu",
+    "steps": 1,
+    "train_last_loss": 2.324497699737549,
+    "eval_loss": 2.2695159912109375,
+    "eval_accuracy": 0.0,
+    "eval_samples": 3
+  },
+  {
+    "benchmark": "sudoku",
+    "variant": "gm_hrm_full",
+    "run_dir": "runs\\gm_hrm_main\\sudoku\\gm_hrm_full",
+    "device": "cpu",
+    "steps": 1,
+    "train_last_loss": 2.325075149536133,
+    "eval_loss": 2.3141531944274902,
+    "eval_accuracy": 0.0,
+    "eval_samples": 3
+  },
+  {
+    "benchmark": "sudoku",
+    "variant": "hrm_plus_memory_no_gate",
+    "run_dir": "runs\\gm_hrm_main\\sudoku\\hrm_plus_memory_no_gate",
+    "device": "cpu",
+    "steps": 1,
+    "train_last_loss": 2.3252182006835938,
+    "eval_loss": 2.3141887187957764,
+    "eval_accuracy": 0.0,
+    "eval_samples": 3
+  },
+  {
+    "benchmark": "sudoku",
+    "variant": "hrm_plus_gate_no_memory",
+    "run_dir": "runs\\gm_hrm_main\\sudoku\\hrm_plus_gate_no_memory",
+    "device": "cpu",
+    "steps": 1,
+    "train_last_loss": 2.324261426925659,
+    "eval_loss": 2.2690722942352295,
+    "eval_accuracy": 0.0,
+    "eval_samples": 3
+  },
+  {
+    "benchmark": "sudoku",
+    "variant": "gm_hrm_fixed_act",
+    "run_dir": "runs\\gm_hrm_main\\sudoku\\gm_hrm_fixed_act",
+    "device": "cpu",
+    "steps": 1,
+    "train_last_loss": 2.376056671142578,
+    "eval_loss": 2.360628604888916,
+    "eval_accuracy": 0.0,
+    "eval_samples": 3
+  },
+  {
+    "benchmark": "sudoku",
+    "variant": "gm_hrm_large_memory",
+    "run_dir": "runs\\gm_hrm_main\\sudoku\\gm_hrm_large_memory",
+    "device": "cpu",
+    "steps": 1,
+    "train_last_loss": 2.3251001834869385,
+    "eval_loss": 2.3141603469848633,
+    "eval_accuracy": 0.0,
+    "eval_samples": 3
+  }
+]

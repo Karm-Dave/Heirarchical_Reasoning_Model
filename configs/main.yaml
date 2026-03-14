@@ -1,0 +1,343 @@
+seed: 42
+device: cuda
+
+experiment:
+  name: gm_hrm_full
+  output_root: runs
+  save_checkpoint: true
+  checkpoint_name: model.pt
+
+data:
+  benchmark: sudoku
+  root: data/sudoku-mini
+  train_split: train
+  test_split: test
+  max_train_samples: null
+  max_test_samples: null
+  normalize_divisor: 10.0
+  target_index: 0
+  num_workers: 0
+  pin_memory: true
+  auto_generate: false
+
+model:
+  name: gm_hrm
+  hidden_dim: 256
+  input_dim: 81
+  output_dim: 10
+  use_gating: true
+
+memory:
+  enabled: true
+  slots: 16
+  slot_dim: 256
+  reset_each_forward: true
+
+halting:
+  enabled: true
+  adaptive: true
+  max_segments: 10
+  ponder_cost: 0.01
+  threshold: 1.0
+
+training:
+  batch_size: 64
+  lr: 3.0e-4
+  epochs: 50
+  weight_decay: 1.0e-2
+  grad_clip_norm: 1.0
+  max_batches_per_epoch: null
+
+optimizer:
+  name: adamw
+  betas: [0.9, 0.95]
+  eps: 1.0e-8
+
+evaluation:
+  max_batches: null
+
+benchmarks:
+  enabled: [sudoku, maze, math, arc]
+  definitions:
+    sudoku:
+      levels:
+        - name: bt22
+          dataset:
+            root: data/benchmarks/sudoku_bt22
+            input_dim: 81
+            output_dim: 10
+            normalize_divisor: 10.0
+            target_index: 0
+          generator:
+            module: data.sudoku_generator
+            args:
+              - --output-dir
+              - data/benchmarks/sudoku_bt22
+              - --min-difficulty
+              - "22"
+              - --num-aug
+              - "0"
+        - name: bt50
+          dataset:
+            root: data/benchmarks/sudoku_bt50
+            input_dim: 81
+            output_dim: 10
+            normalize_divisor: 10.0
+            target_index: 0
+          generator:
+            module: data.sudoku_generator
+            args:
+              - --output-dir
+              - data/benchmarks/sudoku_bt50
+              - --min-difficulty
+              - "50"
+              - --num-aug
+              - "0"
+        - name: bt100
+          dataset:
+            root: data/benchmarks/sudoku_bt100
+            input_dim: 81
+            output_dim: 10
+            normalize_divisor: 10.0
+            target_index: 0
+          generator:
+            module: data.sudoku_generator
+            args:
+              - --output-dir
+              - data/benchmarks/sudoku_bt100
+              - --min-difficulty
+              - "100"
+              - --num-aug
+              - "0"
+        - name: bt200
+          dataset:
+            root: data/benchmarks/sudoku_bt200
+            input_dim: 81
+            output_dim: 10
+            normalize_divisor: 10.0
+            target_index: 0
+          generator:
+            module: data.sudoku_generator
+            args:
+              - --output-dir
+              - data/benchmarks/sudoku_bt200
+              - --min-difficulty
+              - "200"
+              - --num-aug
+              - "0"
+    maze:
+      levels:
+        - name: g30
+          dataset:
+            root: data/benchmarks/maze_30
+            input_dim: 900
+            output_dim: 5
+            normalize_divisor: 5.0
+            target_index: 0
+          generator:
+            module: data.maze_generator
+            args:
+              - --source-repo
+              - sapientinc/maze-30x30-hard-1k
+              - --output-dir
+              - data/benchmarks/maze_30
+              - --aug
+              - "false"
+        - name: g50
+          dataset:
+            root: data/benchmarks/maze_50
+            input_dim: 2500
+            output_dim: 5
+            normalize_divisor: 5.0
+            target_index: 0
+          generator:
+            module: data.mock_generator
+            args:
+              - --output-dir
+              - data/benchmarks/maze_50
+              - --seq-len
+              - "2500"
+              - --vocab-size
+              - "5"
+              - --output-dim
+              - "5"
+        - name: g75
+          dataset:
+            root: data/benchmarks/maze_75
+            input_dim: 5625
+            output_dim: 5
+            normalize_divisor: 5.0
+            target_index: 0
+          generator:
+            module: data.mock_generator
+            args:
+              - --output-dir
+              - data/benchmarks/maze_75
+              - --seq-len
+              - "5625"
+              - --vocab-size
+              - "5"
+              - --output-dim
+              - "5"
+        - name: g100
+          dataset:
+            root: data/benchmarks/maze_100
+            input_dim: 10000
+            output_dim: 5
+            normalize_divisor: 5.0
+            target_index: 0
+          generator:
+            module: data.mock_generator
+            args:
+              - --output-dir
+              - data/benchmarks/maze_100
+              - --seq-len
+              - "10000"
+              - --vocab-size
+              - "5"
+              - --output-dim
+              - "5"
+    math:
+      levels:
+        - name: chain_5_7
+          dataset:
+            root: data/benchmarks/math_5_7
+            input_dim: 64
+            output_dim: 10
+            normalize_divisor: 32.0
+            target_index: 0
+          generator:
+            module: data.math_generator
+            args:
+              - --output-dir
+              - data/benchmarks/math_5_7
+              - --seq-len
+              - "64"
+              - --vocab-size
+              - "32"
+              - --output-dim
+              - "10"
+              - --min-steps
+              - "5"
+              - --max-steps
+              - "7"
+        - name: chain_8_11
+          dataset:
+            root: data/benchmarks/math_8_11
+            input_dim: 64
+            output_dim: 10
+            normalize_divisor: 32.0
+            target_index: 0
+          generator:
+            module: data.math_generator
+            args:
+              - --output-dir
+              - data/benchmarks/math_8_11
+              - --seq-len
+              - "64"
+              - --vocab-size
+              - "32"
+              - --output-dim
+              - "10"
+              - --min-steps
+              - "8"
+              - --max-steps
+              - "11"
+        - name: chain_12_15
+          dataset:
+            root: data/benchmarks/math_12_15
+            input_dim: 64
+            output_dim: 10
+            normalize_divisor: 32.0
+            target_index: 0
+          generator:
+            module: data.math_generator
+            args:
+              - --output-dir
+              - data/benchmarks/math_12_15
+              - --seq-len
+              - "64"
+              - --vocab-size
+              - "32"
+              - --output-dim
+              - "10"
+              - --min-steps
+              - "12"
+              - --max-steps
+              - "15"
+    arc:
+      levels:
+        - name: arc_agi_1
+          dataset:
+            root: data/benchmarks/arc_agi_1
+            input_dim: 900
+            output_dim: 12
+            normalize_divisor: 12.0
+            target_index: 0
+          generator:
+            module: data.mock_generator
+            args:
+              - --output-dir
+              - data/benchmarks/arc_agi_1
+              - --seq-len
+              - "900"
+              - --vocab-size
+              - "12"
+              - --output-dim
+              - "12"
+        - name: arc_agi_2
+          dataset:
+            root: data/benchmarks/arc_agi_2
+            input_dim: 900
+            output_dim: 12
+            normalize_divisor: 12.0
+            target_index: 0
+          generator:
+            module: data.mock_generator
+            args:
+              - --output-dir
+              - data/benchmarks/arc_agi_2
+              - --seq-len
+              - "900"
+              - --vocab-size
+              - "12"
+              - --output-dim
+              - "12"
+
+ablations:
+  enabled: true
+  variants:
+    - name: hrm_baseline
+      overrides:
+        model:
+          use_gating: false
+        memory:
+          enabled: false
+        halting:
+          enabled: true
+          adaptive: true
+    - name: gm_hrm_full
+      overrides: {}
+    - name: hrm_plus_memory_no_gate
+      overrides:
+        model:
+          use_gating: false
+        memory:
+          enabled: true
+    - name: hrm_plus_gate_no_memory
+      overrides:
+        model:
+          use_gating: true
+        memory:
+          enabled: false
+    - name: gm_hrm_fixed_act
+      overrides:
+        halting:
+          enabled: true
+          adaptive: false
+    - name: gm_hrm_large_memory
+      overrides:
+        memory:
+          enabled: true
+          slots: 32
+          slot_dim: 256
