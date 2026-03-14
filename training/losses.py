@@ -2,7 +2,6 @@
 import torch
 import torch.nn.functional as F
 
-
 def act_loss(outputs, targets, halting_probs, ponder_cost, expected_steps=None):
     if len(outputs) != len(halting_probs):
         raise ValueError("outputs and halting_probs must have same length.")
