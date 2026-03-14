@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import csv
 import json
 from pathlib import Path
 import subprocess
@@ -99,6 +100,59 @@ def _iter_levels(base_cfg: Dict[str, Any], benchmark_name: str):
         yield level_name, run_cfg, generator
 
 
+def _write_summary_csv(results: List[Dict[str, Any]], output_path: Path) -> None:
+    if not results:
+        return
+    fieldnames = list(results[0].keys())
+    with output_path.open("w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerows(results)
+
+
+def _generate_plots(results: List[Dict[str, Any]], output_root: Path, experiment_name: str) -> None:
+    try:
+        import matplotlib.pyplot as plt
+    except Exception as exc:  # pragma: no cover - optional dependency
+        print(f"[plots] matplotlib unavailable ({exc}); skipping plot generation.")
+        return
+
+    if not results:
+        print("[plots] no results to plot; skipping.")
+        return
+
+    plots_dir = output_root / f"{experiment_name}_plots"
+    plots_dir.mkdir(parents=True, exist_ok=True)
+
+    grouped: Dict[str, List[Dict[str, Any]]] = {}
+    for row in results:
+        grouped.setdefault(str(row["benchmark"]), []).append(row)
+
+    def _plot_metric(metric_key: str, metric_label: str) -> None:
+        for benchmark_name, rows in sorted(grouped.items()):
+            rows_sorted = sorted(rows, key=lambda r: (r["level"], r["variant"]))
+            labels = [f"{r['level']}/{r['variant']}" for r in rows_sorted]
+            values = [float(r[metric_key]) for r in rows_sorted]
+
+            fig_width = max(8.0, 0.45 * len(labels))
+            fig, ax = plt.subplots(figsize=(fig_width, 4.5))
+            ax.bar(range(len(values)), values, color="#2c7fb8")
+            ax.set_xticks(range(len(labels)))
+            ax.set_xticklabels(labels, rotation=45, ha="right", fontsize=8)
+            ax.set_ylabel(metric_label)
+            ax.set_title(f"{benchmark_name} - {metric_label}")
+            ax.grid(axis="y", linestyle="--", alpha=0.4)
+            fig.tight_layout()
+
+            out_path = plots_dir / f"{benchmark_name}_{metric_key}.png"
+            fig.savefig(out_path, dpi=200)
+            plt.close(fig)
+
+    _plot_metric("eval_accuracy", "Eval Accuracy")
+    _plot_metric("eval_loss", "Eval Loss")
+    _plot_metric("train_last_loss", "Train Last Loss")
+
+
 def main():
     parser = argparse.ArgumentParser(description="Run benchmark + ablation experiments.")
     parser.add_argument("--config", default="configs/main.yaml", help="Path to config YAML.")
@@ -163,6 +217,10 @@ def main():
     summary_path = output_root / f"{cfg['experiment']['name']}_summary.json"
     with summary_path.open("w", encoding="utf-8") as f:
         json.dump(all_results, f, indent=2)
+
+    summary_csv_path = output_root / f"{cfg['experiment']['name']}_summary.csv"
+    _write_summary_csv(all_results, summary_csv_path)
+    _generate_plots(all_results, output_root, cfg["experiment"]["name"])
 
     print(f"\nsummary_saved {summary_path}")
 
